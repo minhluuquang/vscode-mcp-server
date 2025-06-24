@@ -243,41 +243,255 @@ The server provides comprehensive error handling for common scenarios:
 }
 ```
 
-## 🔌 Integration with MCP Clients
+## 🚀 Quick Start
 
-### Claude Desktop
-Add to your MCP configuration:
+### Installation Methods
+
+#### Option 1: Local Installation (Recommended)
+
+**Prerequisites:**
+- Node.js 18 or higher
+- npm or yarn
+- Visual Studio Code installed
+
+**Setup:**
+```bash
+# Clone the repository
+git clone <repository-url>
+cd vscode-mcp-server
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+```
+
+#### Option 2: Use with npx (Recommended for Published Package)
+When the package is published to npm, you can use it directly with npx without installation:
+
+```bash
+# Test the server directly
+npx -y vscode-mcp-server
+```
+
+### Configuration
+
+#### Claude Desktop
+Add this configuration to your Claude Desktop config file:
+
+**Config file locations:**
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+**For published package (recommended):**
 ```json
 {
   "mcpServers": {
     "vscode-settings": {
-      "command": "node",
-      "args": ["/path/to/vscode-mcp-server/dist/index.js"]
+      "command": "npx",
+      "args": [
+        "-y",
+        "vscode-mcp-server"
+      ]
     }
   }
 }
 ```
 
-### Other MCP Clients
-The server follows the standard MCP protocol and works with any compliant client using stdio transport.
+**For local development:**
+```json
+{
+  "mcpServers": {
+    "vscode-settings": {
+      "command": "node",
+      "args": ["/absolute/path/to/vscode-mcp-server/dist/index.js"]
+    }
+  }
+}
+```
 
-## 🧪 Testing
+#### VS Code with MCP Extension
+If using an MCP-compatible extension in VS Code:
 
-### Manual Testing
+**For published package:**
+```json
+{
+  "mcp.servers": [
+    {
+      "name": "vscode-settings",
+      "command": "npx",
+      "args": ["-y", "vscode-mcp-server"]
+    }
+  ]
+}
+```
+
+**For local development:**
+```json
+{
+  "mcp.servers": [
+    {
+      "name": "vscode-settings",
+      "command": "node",
+      "args": ["/absolute/path/to/vscode-mcp-server/dist/index.js"]
+    }
+  ]
+}
+```
+
+#### Other MCP Clients
+Any MCP-compatible client can connect using stdio transport:
+
+**For published package:**
+```json
+{
+  "name": "vscode-settings",
+  "command": "npx",
+  "args": ["-y", "vscode-mcp-server"],
+  "transport": "stdio"
+}
+```
+
+**For local development:**
+```json
+{
+  "name": "vscode-settings",
+  "command": "node",
+  "args": ["/path/to/vscode-mcp-server/dist/index.js"],
+  "transport": "stdio"
+}
+```
+
+### Environment Variables
+
+The server supports these optional environment variables:
+
 ```bash
-# Start the server in development mode
-npm run dev
+# Set custom VS Code installation path (optional)
+export VSCODE_USER_PATH="/custom/path/to/vscode/settings"
 
-# In another terminal, test with MCP client or direct stdio
+# Enable debug logging (optional)
+export DEBUG="vscode-mcp-server:*"
+```
+
+## 🎯 Usage
+
+Once configured, you can interact with VS Code settings through your MCP client:
+
+### Basic Commands
+```
+# Update settings
+"Set my VS Code font size to 16"
+"Change VS Code theme to GitHub Dark"
+"Enable word wrap in VS Code"
+
+# Read settings  
+"What's my current VS Code font size?"
+"Show me my VS Code theme setting"
+"List all my workspace settings"
+
+# Get help
+"What VS Code settings can I modify?"
+"Show me common VS Code editor settings"
+```
+
+### Advanced Usage
+```
+# Language-specific settings
+"Configure TypeScript formatting for this workspace"
+"Set up Python linting rules in VS Code"
+
+# Complex configurations
+"Hide node_modules and .git folders from VS Code explorer"
+"Set up custom file associations for .env files"
+"Configure VS Code rulers at columns 80 and 120"
+```
+
+## 🧪 Testing and Troubleshooting
+
+### Direct Server Testing
+Test the server directly without an MCP client:
+
+**For published package:**
+```bash
+# Test tool listing
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | npx -y vscode-mcp-server
+
+# Test updating a setting (user scope)
+echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"update_vscode_setting","arguments":{"setting":"editor.fontSize","value":16,"scope":"user"}}}' | npx -y vscode-mcp-server
+
+# Test reading a setting
+echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_vscode_setting","arguments":{"setting":"editor.fontSize","scope":"user"}}}' | npx -y vscode-mcp-server
+```
+
+**For local development:**
+```bash
+# 1. Build the project first
+npm run build
+
+# 2. Test tool listing
 echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | node dist/index.js
+
+# 3. Test updating a setting (user scope)
+echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"update_vscode_setting","arguments":{"setting":"editor.fontSize","value":16,"scope":"user"}}}' | node dist/index.js
+
+# 4. Test reading a setting
+echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_vscode_setting","arguments":{"setting":"editor.fontSize","scope":"user"}}}' | node dist/index.js
+```
+
+### Testing with Claude Desktop
+
+After integration, test these commands in Claude Desktop:
+
+```
+# Basic setting updates
+"Please update my VS Code font size to 14"
+"Change my VS Code theme to Dark+ (default dark)"
+"Enable word wrap in my VS Code editor"
+
+# Reading settings
+"What's my current VS Code font size?"
+"Show me all my workspace VS Code settings"
+"What theme am I currently using in VS Code?"
+
+# Advanced configurations
+"Set up TypeScript formatting on save for my workspace"
+"Configure my VS Code to hide node_modules from the file explorer"
 ```
 
 ### Common Settings to Test
-- `editor.fontSize`: Number value
-- `workbench.colorTheme`: String value  
-- `editor.minimap.enabled`: Boolean value
-- `files.exclude`: Object value
-- `editor.rulers`: Array value
+- `editor.fontSize`: Number value (e.g., 12, 14, 16)
+- `workbench.colorTheme`: String value (e.g., "Dark+ (default dark)")
+- `editor.minimap.enabled`: Boolean value (true/false)
+- `files.exclude`: Object value (e.g., {"node_modules": true})
+- `editor.rulers`: Array value (e.g., [80, 120])
+- `editor.wordWrap`: String value ("on", "off", "wordWrapColumn")
+
+### Troubleshooting
+
+#### Server Not Responding
+1. Verify the server builds successfully: `npm run build`
+2. Check the absolute path in your MCP configuration
+3. Ensure Node.js version is 18 or higher: `node --version`
+4. Test direct server communication with the commands above
+
+#### Settings Not Updating
+1. Verify VS Code is not running (close all instances)
+2. Check file permissions for VS Code settings directories
+3. Ensure the setting key is valid (use `list_common_settings` tool)
+4. Verify JSON syntax in complex setting values
+
+#### Path Issues
+- **macOS**: Ensure path starts with `/Users/username/...`
+- **Windows**: Use forward slashes or escape backslashes in JSON
+- **Linux**: Ensure proper permissions for the home directory
+
+#### Debug Mode
+Run with additional logging:
+```bash
+DEBUG=* node dist/index.js
+```
 
 ## 🤝 Contributing
 
